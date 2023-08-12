@@ -15,7 +15,7 @@
     "commands": [
       {
         "command": "csharpclasstojson.createJsonFromCSharp",
-        "title": "Hello World"
+        "title": "Create JSON from a C# class"
       }
     ]
   },
