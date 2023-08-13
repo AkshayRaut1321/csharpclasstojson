@@ -1,7 +1,6 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import * as fs from 'fs';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -39,12 +38,18 @@ export function activate(context: vscode.ExtensionContext) {
 						.then(document => {
 							vscode.window.showTextDocument(document);
 						});
+					vscode.window.showInformationMessage('Output will be visible in new tab!');
 				} catch (error: any) {
 					vscode.window.showErrorMessage('Error generating JSON: ' + error);
 				}
 			}
+			else {
+				vscode.window.showErrorMessage('Document is empty!');
+			}
 		}
-		vscode.window.showInformationMessage('Output will be visible in new tab!');
+		else {
+			vscode.window.showErrorMessage('VS Code text editor is unavailable!');
+		}
 	});
 
 	context.subscriptions.push(disposable);
@@ -85,7 +90,7 @@ function generateSampleJSON(csharpClass: string): string {
 	// Generate JSON from properties
 	// const sampleJSON = JSON.stringify({ [className]: properties }, null, 4);
 	const outputJSON = JSON.stringify(outputObject, null, 4);
-	return `//${className}\r\n`+outputJSON;
+	return `//${className}\r\n` + outputJSON;
 }
 
 // Function to generate sample value based on C# type
