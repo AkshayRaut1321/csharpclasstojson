@@ -42,15 +42,74 @@ suite('Extension Test Suite', () => {
 		assert.ok((await vscode.commands.getCommands(true)).includes('csharpclasstojson.createJsonFromCSharp'));
 	});
 
-	test('Generate Sample JSON from C# Class', () => {
+	test('Generate JSON from C# Class - Multi property inline declaration', () => {
+		const className = 'Person';
 		const csharpClass = `
-		  class Person {
+		  class ${className} {
 			  string FirstName { get; set; }
 			  string LastName { get; set; }
 			  int Age { get; set; }
 		  }`;
 
-		const expectedJSON = `//Person\r\n${JSON.stringify({ FirstName: "Sample String", LastName: "Sample String", Age: 0 }, null, 4)}`;
+		const expectedJSON = `//${className}\r\n${JSON.stringify({ FirstName: "Sample String", LastName: "Sample String", Age: 0 }, null, 4)}`;
+
+		const generatedJSON = generateSampleJSON(csharpClass);
+		assert.strictEqual(generatedJSON, expectedJSON);
+	});
+
+	test('Generate JSON from C# Class - single property inline declaration', () => {
+		const className = 'AutoPropertyExample';
+		const csharpClass = `
+			public class ${className}
+			{
+				public int Age { get; set; } // Auto-implemented property
+			}`;
+
+		const expectedJSON = `//${className}\r\n${JSON.stringify({ Age: 0 }, null, 4)}`;
+
+		const generatedJSON = generateSampleJSON(csharpClass);
+		assert.strictEqual(generatedJSON, expectedJSON);
+	});
+
+	test('Generate JSON from C# Class - property with backing field', () => {
+		const className = 'ExplicitPropertyExample';
+		const csharpClass = `
+		public class ${className}
+		{
+			private int _age; // Backing field
+		
+			public int Age
+			{
+				get { return _age; }
+				set { _age = value; }
+			}
+		}`;
+
+		const expectedJSON = `//${className}\r\n${JSON.stringify({ Age: 0 }, null, 4)}`;
+
+		const generatedJSON = generateSampleJSON(csharpClass);
+		assert.strictEqual(generatedJSON, expectedJSON);
+	});
+
+	test('Generate Sample JSON from C# Class - readonly property', () => {
+		const className = 'ReadOnlyPropertyExample';
+		const csharpClass = `
+		public class ${className}
+		{
+			private string _name; // Backing field
+		
+			public string Name
+			{
+				get { return _name; }
+			}
+		
+			public ReadOnlyPropertyExample(string name)
+			{
+				_name = name;
+			}
+		}`;
+
+		const expectedJSON = `//${className}\r\n${JSON.stringify({ Name: "Sample String" }, null, 4)}`;
 
 		const generatedJSON = generateSampleJSON(csharpClass);
 		assert.strictEqual(generatedJSON, expectedJSON);
