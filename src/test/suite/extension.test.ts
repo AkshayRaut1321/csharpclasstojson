@@ -4,6 +4,7 @@ import * as assert from 'assert';
 // as well as import your extension to test it
 import * as vscode from 'vscode';
 import { activate, generateSampleJSON } from '../../extension';
+import { NamingConvention } from '../../enums/naming-convention.enum';
 
 suite('Extension Test Suite', () => {
 	vscode.window.showInformationMessage('Start all tests.');
@@ -36,13 +37,15 @@ suite('Extension Test Suite', () => {
 			extension: ({} as any),
 			environmentVariableCollection: ({} as any)
 		};
-
 		await activate(context);
 
-		assert.ok((await vscode.commands.getCommands(true)).includes('csharpclasstojson.createJsonFromCSharp'));
+		assert.ok((await vscode.commands.getCommands(true)).includes('csharpclasstojson.createJsonFromCSharpCamelCase'));
+
+		assert.ok((await vscode.commands.getCommands(true)).includes('csharpclasstojson.createJsonFromCSharpPascalCase'));
 	});
 
-	test('Generate JSON from C# Class - Multi property inline declaration', () => {
+	//Test cases for Pascal case:
+	test('PascalCase - Generate JSON from C# Class - Multi property inline declaration', () => {
 		const className = 'Person';
 		const csharpClass = `
 		  class ${className} {
@@ -53,11 +56,11 @@ suite('Extension Test Suite', () => {
 
 		const expectedJSON = `//${className}\r\n${JSON.stringify({ FirstName: "Sample String", LastName: "Sample String", Age: 0 }, null, 4)}`;
 
-		const generatedJSON = generateSampleJSON(csharpClass);
+		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.PascalCase);
 		assert.strictEqual(generatedJSON, expectedJSON);
 	});
 
-	test('Generate JSON from C# Class - single property inline declaration', () => {
+	test('PascalCase - Generate JSON from C# Class - single property inline declaration', () => {
 		const className = 'AutoPropertyExample';
 		const csharpClass = `
 			public class ${className}
@@ -67,11 +70,11 @@ suite('Extension Test Suite', () => {
 
 		const expectedJSON = `//${className}\r\n${JSON.stringify({ Age: 0 }, null, 4)}`;
 
-		const generatedJSON = generateSampleJSON(csharpClass);
+		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.PascalCase);
 		assert.strictEqual(generatedJSON, expectedJSON);
 	});
 
-	test('Generate JSON from C# Class - property with backing field', () => {
+	test('PascalCase - Generate JSON from C# Class - property with backing field', () => {
 		const className = 'ExplicitPropertyExample';
 		const csharpClass = `
 		public class ${className}
@@ -87,11 +90,11 @@ suite('Extension Test Suite', () => {
 
 		const expectedJSON = `//${className}\r\n${JSON.stringify({ Age: 0 }, null, 4)}`;
 
-		const generatedJSON = generateSampleJSON(csharpClass);
+		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.PascalCase);
 		assert.strictEqual(generatedJSON, expectedJSON);
 	});
 
-	test('Generate Sample JSON from C# Class - readonly property', () => {
+	test('PascalCase - Generate Sample JSON from C# Class - readonly property', () => {
 		const className = 'ReadOnlyPropertyExample';
 		const csharpClass = `
 		public class ${className}
@@ -111,7 +114,81 @@ suite('Extension Test Suite', () => {
 
 		const expectedJSON = `//${className}\r\n${JSON.stringify({ Name: "Sample String" }, null, 4)}`;
 
-		const generatedJSON = generateSampleJSON(csharpClass);
+		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.PascalCase);
+		assert.strictEqual(generatedJSON, expectedJSON);
+	});
+	
+	//Test cases for camelCase:
+	test('camelCase - Generate JSON from C# Class - Multi property inline declaration', () => {
+		const className = 'Person';
+		const csharpClass = `
+		  class ${className} {
+			  string FirstName { get; set; }
+			  string LastName { get; set; }
+			  int Age { get; set; }
+		  }`;
+
+		const expectedJSON = `//${className}\r\n${JSON.stringify({ firstName: "Sample String", lastName: "Sample String", age: 0 }, null, 4)}`;
+
+		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.camelCase);
+		assert.strictEqual(generatedJSON, expectedJSON);
+	});
+
+	test('camelCase - Generate JSON from C# Class - single property inline declaration', () => {
+		const className = 'AutoPropertyExample';
+		const csharpClass = `
+			public class ${className}
+			{
+				public int Age { get; set; } // Auto-implemented property
+			}`;
+
+		const expectedJSON = `//${className}\r\n${JSON.stringify({ age: 0 }, null, 4)}`;
+
+		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.camelCase);
+		assert.strictEqual(generatedJSON, expectedJSON);
+	});
+
+	test('camelCase - Generate JSON from C# Class - property with backing field', () => {
+		const className = 'ExplicitPropertyExample';
+		const csharpClass = `
+		public class ${className}
+		{
+			private int _age; // Backing field
+		
+			public int Age
+			{
+				get { return _age; }
+				set { _age = value; }
+			}
+		}`;
+
+		const expectedJSON = `//${className}\r\n${JSON.stringify({ age: 0 }, null, 4)}`;
+
+		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.camelCase);
+		assert.strictEqual(generatedJSON, expectedJSON);
+	});
+
+	test('camelCase - Generate Sample JSON from C# Class - readonly property', () => {
+		const className = 'ReadOnlyPropertyExample';
+		const csharpClass = `
+		public class ${className}
+		{
+			private string _name; // Backing field
+		
+			public string Name
+			{
+				get { return _name; }
+			}
+		
+			public ReadOnlyPropertyExample(string name)
+			{
+				_name = name;
+			}
+		}`;
+
+		const expectedJSON = `//${className}\r\n${JSON.stringify({ name: "Sample String" }, null, 4)}`;
+
+		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.camelCase);
 		assert.strictEqual(generatedJSON, expectedJSON);
 	});
 });
