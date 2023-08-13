@@ -2,7 +2,7 @@
   "name": "csharpclasstojson",
   "displayName": "C# class to JSON",
   "description": "Creates sample JSON from C# class",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.81.0"
   },
