@@ -22,12 +22,12 @@ export function activate(context: vscode.ExtensionContext) {
 			if (text) {
 				try {
 					// Test the function with your sample properties
-					const input1 = "int Age { get; set; }";
-					const input2 = "int id      { get;       set;";
-					const parsedObject1 = parsePropertyDeclaration(input1);
-					const parsedObject2 = parsePropertyDeclaration(input2);
-					console.log(parsedObject1);
-					console.log(parsedObject2);
+					// const input1 = "int Age { get; set; }";
+					// const input2 = "int id      { get;       set;";
+					// const parsedObject1 = parsePropertyDeclaration(input1);
+					// const parsedObject2 = parsePropertyDeclaration(input2);
+					// console.log(parsedObject1);
+					// console.log(parsedObject2);
 
 					// Parse the C# class structure and generate JSON
 					const csharpClass = text.replace(/\n/g, ' ');
@@ -59,9 +59,9 @@ export function activate(context: vscode.ExtensionContext) {
 export function deactivate() { }
 
 // Function to generate sample JSON from C# class
-function generateSampleJSON(csharpClass: string): string {
+export function generateSampleJSON(csharpClass: string): string {
 	// Parse the C# class structure
-	const classRegex = /class\s+(\w+)\s*{([^}]*)}/;
+	const classRegex = /class\s+(\w+)\s*{([\s\S]*)}/;
 	const match = csharpClass.match(classRegex);
 
 	if (!match || match.length < 3) {
@@ -72,7 +72,7 @@ function generateSampleJSON(csharpClass: string): string {
 	const propertiesText = match[2].trim().replace(/\r/g, ' ');
 
 	// Parse class properties
-	const propertyRegex = /^\s*(\w+)\s+(\w+)\s*{/;
+	const propertyRegex = /(\w+)\s+(\w+)\s*{[^}]*}/g;
 	const propertiesMatch = propertiesText.match(propertyRegex);
 
 	if (!propertiesMatch) {
@@ -94,7 +94,7 @@ function generateSampleJSON(csharpClass: string): string {
 }
 
 // Function to generate sample value based on C# type
-function generateSampleValue(type: string): any {
+export function generateSampleValue(type: string): any {
 	switch (type) {
 		case 'string':
 			return 'Sample String';

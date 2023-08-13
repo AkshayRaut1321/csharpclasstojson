@@ -4,5 +4,5 @@ class Employee
     { get; 
     set; };
 
-    string Name;
+    string Name {get;set;}
 }
