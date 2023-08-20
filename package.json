@@ -18,8 +18,16 @@
         "title": "Create JSON from a C# class (camelCase)"
       },
       {
+        "command": "csharpclasstojson.createJsonFromCSharpCamelCaseIgnoreFields",
+        "title": "Create JSON from a C# class and ignore fields (camelCase)"
+      },
+      {
         "command": "csharpclasstojson.createJsonFromCSharpPascalCase",
         "title": "Create JSON from a C# class (PascalCase)"
+      },
+      {
+        "command": "csharpclasstojson.createJsonFromCSharpPascalCaseIgnoreFields",
+        "title": "Create JSON from a C# class and ignore fields (PascalCase)"
       }
     ]
   },

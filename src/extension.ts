@@ -1,7 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { NamingConvention } from './enums/naming-convention.enum';
+import { NamingConvention, SupportFields } from './enums/enums';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -13,19 +13,29 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// The command has been defined in the package.json file
 	// The commandId parameter must match the command field in package.json
-	let pascalCaseDisposable = vscode.commands.registerCommand('csharpclasstojson.createJsonFromCSharpPascalCase', () => {
-		generateJSONFromClasses(NamingConvention.PascalCase);
+	let camelCaseDisposable = vscode.commands.registerCommand('csharpclasstojson.createJsonFromCSharpCamelCase', () => {
+		generateJSONFromClasses(NamingConvention.camelCase, SupportFields.includeFields);
 	});
 
-	let camelCaseDisposable = vscode.commands.registerCommand('csharpclasstojson.createJsonFromCSharpCamelCase', () => {
-		generateJSONFromClasses(NamingConvention.camelCase);
+	let camelCaseIgnoreFieldsDisposable = vscode.commands.registerCommand('csharpclasstojson.createJsonFromCSharpCamelCaseIgnoreFields', () => {
+		generateJSONFromClasses(NamingConvention.camelCase, SupportFields.ignoreFields);
+	});
+
+	let pascalCaseDisposable = vscode.commands.registerCommand('csharpclasstojson.createJsonFromCSharpPascalCase', () => {
+		generateJSONFromClasses(NamingConvention.PascalCase, SupportFields.includeFields);
+	});
+
+	let pascalCaseIgnoreFieldsDisposable = vscode.commands.registerCommand('csharpclasstojson.createJsonFromCSharpPascalCaseIgnoreFields', () => {
+		generateJSONFromClasses(NamingConvention.PascalCase, SupportFields.ignoreFields);
 	});
 
 	context.subscriptions.push(pascalCaseDisposable);
 	context.subscriptions.push(camelCaseDisposable);
+	context.subscriptions.push(pascalCaseIgnoreFieldsDisposable);
+	context.subscriptions.push(camelCaseIgnoreFieldsDisposable);
 }
 
-export function generateJSONFromClasses(namingConvention: NamingConvention) {
+export function generateJSONFromClasses(namingConvention: NamingConvention, supportFields: SupportFields) {
 
 	// The code you place here will be executed every time your command is executed
 	// Display a message box to the user
@@ -44,7 +54,7 @@ export function generateJSONFromClasses(namingConvention: NamingConvention) {
 
 				// Parse the C# class structure and generate JSON
 				const csharpClasses = text.replace(/\n/g, ' ');
-				const jsonOutput = generateSampleJSON(csharpClasses, namingConvention);
+				const jsonOutput = generateSampleJSON(csharpClasses, namingConvention, supportFields);
 
 				// Create a new untitled text document and show JSON
 				vscode.workspace.openTextDocument({ content: jsonOutput, language: 'json' })
@@ -70,8 +80,8 @@ export function generateJSONFromClasses(namingConvention: NamingConvention) {
 export function deactivate() { }
 
 // Function to generate sample JSON from C# class
-export function generateSampleJSON(csharpClass: string, namingConvention: NamingConvention): string {
-	const multiClassRegEx = /class\s+\w+\s*{(?:[^{}]*{[^{}]*}|[^{}])*}/g;
+export function generateSampleJSON(csharpClass: string, namingConvention: NamingConvention, supportFields: SupportFields): string {
+	const multiClassRegEx = /class\s+\w+\s*{(?:[^}]*{[^{}]*}|[^{}])*}/g;
 	const classesArray = csharpClass.match(multiClassRegEx) as any[];
 	let finalJson = "";
 	let allClassNamesAndProperties = new Map<string, string>();
@@ -91,16 +101,15 @@ export function generateSampleJSON(csharpClass: string, namingConvention: Naming
 
 	for (let classNameAndProperties of allClassNamesAndProperties) {
 		console.log(classNameAndProperties);
-		let outputJSON = generateSampleJSONFromAClass(classNameAndProperties, namingConvention, allClassNamesAndProperties);
+		let outputJSON = generateSampleJSONFromAClass(classNameAndProperties, namingConvention, allClassNamesAndProperties, supportFields);
 		console.log(outputJSON);
 		finalJson = (finalJson && finalJson + '\r\n\r\n') + `//${classNameAndProperties[0]}\r\n` + outputJSON;
 	}
 	return finalJson;
 }
 
-export function generateSampleJSONFromAClass(matchingClass: [string, string],
-	namingConvention: NamingConvention,
-	allClassNamesAndProperties: Map<string, string>): string {
+export function generateSampleJSONFromAClass(matchingClass: [string, string], namingConvention: NamingConvention,
+	allClassNamesAndProperties: Map<string, string>, supportFields: SupportFields): string {
 
 	if (!matchingClass[1] || matchingClass[1].length < 3) {
 		throw new Error('Invalid C# class structure');
@@ -109,11 +118,13 @@ export function generateSampleJSONFromAClass(matchingClass: [string, string],
 	const className = matchingClass[0];
 
 	// Parse class properties
-	const propertyRegex = /(\w+)\s+(\w+)\s*({[^}]*}|;)/g;
-	const propertiesMatch = matchingClass[1].match(propertyRegex);
+	const propertyAndFieldsRegex = /(\w+)\s+(\w+)\s*({[^}]*}|;)/g;
+	const propertyRegex = /(\w+)\s+(\w+)\s*{[^}]*}/g;
+	const propertiesMatch = supportFields === SupportFields.ignoreFields ? matchingClass[1].match(propertyRegex) : matchingClass[1].match(propertyAndFieldsRegex);
 
 	if (!propertiesMatch) {
-		throw new Error(`No properties found in C# class - ${className}`);
+		console.error(`No properties found in C# class - ${className}`);
+		return JSON.stringify({});
 	}
 
 	const outputObject: { [key: string]: any } = {};
@@ -121,7 +132,7 @@ export function generateSampleJSONFromAClass(matchingClass: [string, string],
 		const [, type, name] = propertyMatch.match(/\s*(\w+)\s+(\w+)/) || [];
 		if (type && name) {
 			const propName = namingConvention === NamingConvention.PascalCase ? name : (name[0].toLowerCase() + name.substring(1));
-			outputObject[propName] = generateSampleValue(type, namingConvention, allClassNamesAndProperties);
+			outputObject[propName] = generateSampleValue(type, namingConvention, allClassNamesAndProperties, supportFields);
 		}
 	});
 
@@ -133,7 +144,7 @@ export function generateSampleJSONFromAClass(matchingClass: [string, string],
 
 // Function to generate sample value based on C# type
 export function generateSampleValue(dataType: string, namingConvention: NamingConvention,
-	allClassNamesAndProperties: Map<string, string>): any {
+	allClassNamesAndProperties: Map<string, string>, supportFields: SupportFields): any {
 	switch (dataType) {
 		case "bool":
 			return false;
@@ -193,7 +204,7 @@ export function generateSampleValue(dataType: string, namingConvention: NamingCo
 			if (allClassNamesAndProperties.has(dataType)) {
 				const matchingClassStructure = allClassNamesAndProperties.get(dataType) || '';
 
-				const nestedOutput = generateSampleJSONFromAClass([dataType, matchingClassStructure], namingConvention, allClassNamesAndProperties);
+				const nestedOutput = generateSampleJSONFromAClass([dataType, matchingClassStructure], namingConvention, allClassNamesAndProperties, supportFields);
 				return JSON.parse(nestedOutput);
 			}
 			return null; // Default for unsupported types

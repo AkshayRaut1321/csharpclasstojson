@@ -21,4 +21,13 @@ class Address
 class Contact
 {
     int PhoneNo;
+
+    string _email;
+
+    string Email
+    {
+        get{
+            return _email;
+        }
+    }
 }
