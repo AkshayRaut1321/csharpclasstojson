@@ -109,11 +109,11 @@ export function generateSampleJSONFromAClass(matchingClass: [string, string],
 	const className = matchingClass[0];
 
 	// Parse class properties
-	const propertyRegex = /(\w+)\s+(\w+)\s*{[^}]*}/g;
+	const propertyRegex = /(\w+)\s+(\w+)\s*({[^}]*}|;)/g;
 	const propertiesMatch = matchingClass[1].match(propertyRegex);
 
 	if (!propertiesMatch) {
-		throw new Error('No properties found in C# class');
+		throw new Error(`No properties found in C# class - ${className}`);
 	}
 
 	const outputObject: { [key: string]: any } = {};
