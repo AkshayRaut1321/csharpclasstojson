@@ -1,0 +1,23 @@
+//Employee
+{
+    "id": 0,
+    "name": "Sample String",
+    "address": {
+        "city": "Sample String",
+        "name": "Sample String"
+    },
+    "contact": {
+        "phoneNo": 0
+    }
+}
+
+//Address
+{
+    "city": "Sample String",
+    "name": "Sample String"
+}
+
+//Contact
+{
+    "phoneNo": 0
+}
