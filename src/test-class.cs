@@ -5,6 +5,8 @@ class Employee
     set; };
 
     string Name {get;set;}
+
+    Address address {get;set;}
 }
 
 class Address
