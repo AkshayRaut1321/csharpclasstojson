@@ -4,7 +4,7 @@ import * as assert from 'assert';
 // as well as import your extension to test it
 import * as vscode from 'vscode';
 import { activate, generateSampleJSON } from '../../extension';
-import { NamingConvention } from '../../enums/naming-convention.enum';
+import { NamingConvention, SupportFields } from '../../enums/enums';
 
 suite('Extension Test Suite', () => {
 	vscode.window.showInformationMessage('Start all tests.');
@@ -56,7 +56,7 @@ suite('Extension Test Suite', () => {
 
 		const expectedJSON = `//${className}\r\n${JSON.stringify({ FirstName: "Sample String", LastName: "Sample String", Age: 0 }, null, 4)}`;
 
-		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.PascalCase);
+		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.PascalCase, SupportFields.includeFields);
 		assert.strictEqual(generatedJSON, expectedJSON);
 	});
 
@@ -70,7 +70,7 @@ suite('Extension Test Suite', () => {
 
 		const expectedJSON = `//${className}\r\n${JSON.stringify({ Age: 0 }, null, 4)}`;
 
-		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.PascalCase);
+		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.PascalCase, SupportFields.includeFields);
 		assert.strictEqual(generatedJSON, expectedJSON);
 	});
 
@@ -90,7 +90,7 @@ suite('Extension Test Suite', () => {
 
 		const expectedJSON = `//${className}\r\n${JSON.stringify({ Age: 0 }, null, 4)}`;
 
-		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.PascalCase);
+		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.PascalCase, SupportFields.ignoreFields);
 		assert.strictEqual(generatedJSON, expectedJSON);
 	});
 
@@ -114,7 +114,7 @@ suite('Extension Test Suite', () => {
 
 		const expectedJSON = `//${className}\r\n${JSON.stringify({ Name: "Sample String" }, null, 4)}`;
 
-		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.PascalCase);
+		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.PascalCase, SupportFields.includeFields);
 		assert.strictEqual(generatedJSON, expectedJSON);
 	});
 	
@@ -130,7 +130,7 @@ suite('Extension Test Suite', () => {
 
 		const expectedJSON = `//${className}\r\n${JSON.stringify({ firstName: "Sample String", lastName: "Sample String", age: 0 }, null, 4)}`;
 
-		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.camelCase);
+		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.camelCase, SupportFields.includeFields);
 		assert.strictEqual(generatedJSON, expectedJSON);
 	});
 
@@ -144,7 +144,7 @@ suite('Extension Test Suite', () => {
 
 		const expectedJSON = `//${className}\r\n${JSON.stringify({ age: 0 }, null, 4)}`;
 
-		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.camelCase);
+		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.camelCase, SupportFields.includeFields);
 		assert.strictEqual(generatedJSON, expectedJSON);
 	});
 
@@ -164,7 +164,7 @@ suite('Extension Test Suite', () => {
 
 		const expectedJSON = `//${className}\r\n${JSON.stringify({ age: 0 }, null, 4)}`;
 
-		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.camelCase);
+		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.camelCase, SupportFields.ignoreFields);
 		assert.strictEqual(generatedJSON, expectedJSON);
 	});
 
@@ -188,7 +188,7 @@ suite('Extension Test Suite', () => {
 
 		const expectedJSON = `//${className}\r\n${JSON.stringify({ name: "Sample String" }, null, 4)}`;
 
-		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.camelCase);
+		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.camelCase, SupportFields.includeFields);
 		assert.strictEqual(generatedJSON, expectedJSON);
 	});
 });
