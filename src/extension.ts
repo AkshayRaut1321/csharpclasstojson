@@ -43,8 +43,8 @@ export function generateJSONFromClasses(namingConvention: NamingConvention) {
 				// console.log(parsedObject2);
 
 				// Parse the C# class structure and generate JSON
-				const csharpClass = text.replace(/\n/g, ' ');
-				const jsonOutput = generateSampleJSON(csharpClass, namingConvention);
+				const csharpClasses = text.replace(/\n/g, ' ');
+				const jsonOutput = generateSampleJSON(csharpClasses, namingConvention);
 
 				// Create a new untitled text document and show JSON
 				vscode.workspace.openTextDocument({ content: jsonOutput, language: 'json' })
@@ -71,9 +71,23 @@ export function deactivate() { }
 
 // Function to generate sample JSON from C# class
 export function generateSampleJSON(csharpClass: string, namingConvention: NamingConvention): string {
+	const multiClassRegEx = /class\s+\w+\s*{(?:[^{}]*{[^{}]*}|[^{}])*}/g;
+	const classesArray = csharpClass.match(multiClassRegEx) as any[];
+	let finalJson = "";
+
+	for (let matchingClass of classesArray) {
+		console.log(matchingClass);
+		let classJsonOutput = generateSampleJSONFromAClass(matchingClass, namingConvention);
+		console.log(classJsonOutput);
+		finalJson = (finalJson && finalJson + '\r\n\r\n') + classJsonOutput;
+	}
+	return finalJson;
+}
+
+export function generateSampleJSONFromAClass(matchingClass: string, namingConvention: NamingConvention){
 	// Parse the C# class structure
 	const classRegex = /class\s+(\w+)\s*{([\s\S]*)}/;
-	const match = csharpClass.match(classRegex);
+	const match = matchingClass.match(classRegex);
 
 	if (!match || match.length < 3) {
 		throw new Error('Invalid C# class structure');
