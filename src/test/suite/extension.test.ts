@@ -45,7 +45,7 @@ suite('Extension Test Suite', () => {
 	});
 
 	//Test cases for Pascal case:
-	test('PascalCase - Generate JSON from C# Class - Multi property inline declaration', () => {
+	test('PascalCase - Generate JSON from C# Class - include fields - Multi property inline declaration', () => {
 		const className = 'Person';
 		const csharpClass = `
 		  class ${className} {
@@ -60,7 +60,7 @@ suite('Extension Test Suite', () => {
 		assert.strictEqual(generatedJSON, expectedJSON);
 	});
 
-	test('PascalCase - Generate JSON from C# Class - single property inline declaration', () => {
+	test('PascalCase - Generate JSON from C# Class - include fields - single property inline declaration', () => {
 		const className = 'AutoPropertyExample';
 		const csharpClass = `
 			public class ${className}
@@ -94,7 +94,31 @@ suite('Extension Test Suite', () => {
 		assert.strictEqual(generatedJSON, expectedJSON);
 	});
 
-	test('PascalCase - Generate Sample JSON from C# Class - readonly property', () => {
+	test('PascalCase - Generate Sample JSON from C# Class - include fields - readonly property', () => {
+		const className = 'ReadOnlyPropertyExample';
+		const csharpClass = `
+		public class ${className}
+		{
+			private string _name; // Backing field
+		
+			public string Name
+			{
+				get { return _name; }
+			}
+		
+			public ReadOnlyPropertyExample(string name)
+			{
+				_name = name;
+			}
+		}`;
+
+		const expectedJSON = `//${className}\r\n${JSON.stringify({ _name: "Sample String", Name: "Sample String" }, null, 4)}`;
+
+		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.PascalCase, SupportFields.includeFields);
+		assert.strictEqual(generatedJSON, expectedJSON);
+	});
+
+	test('PascalCase - Generate Sample JSON from C# Class - ignore fields - readonly property', () => {
 		const className = 'ReadOnlyPropertyExample';
 		const csharpClass = `
 		public class ${className}
@@ -114,12 +138,103 @@ suite('Extension Test Suite', () => {
 
 		const expectedJSON = `//${className}\r\n${JSON.stringify({ Name: "Sample String" }, null, 4)}`;
 
+		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.PascalCase, SupportFields.ignoreFields);
+		assert.strictEqual(generatedJSON, expectedJSON);
+	});
+
+	test('PascalCase - Generate Sample JSON from C# Class - ignore fields - getter and curly braces on new line - readonly property', () => {
+		const className = 'ReadOnlyPropertyExample';
+		const csharpClass = `
+		public class ${className}
+		{
+			int PhoneNo;
+
+			string _email;
+		
+			string Email
+			{
+				get{
+					return _email;
+				}
+			}
+		}`;
+
+		const expectedJSON = `//${className}\r\n${JSON.stringify({ Email: "Sample String" }, null, 4)}`;
+
+		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.PascalCase, SupportFields.ignoreFields);
+		assert.strictEqual(generatedJSON, expectedJSON);
+	});
+
+	test('PascalCase - Generate Sample JSON from C# Class - include fields - getter and curly braces on new line - readonly property', () => {
+		const className = 'ReadOnlyPropertyExample';
+		const csharpClass = `
+		public class ${className}
+		{
+			int PhoneNo;
+
+			string _email;
+		
+			string Email
+			{
+				get{
+					return _email;
+				}
+			}
+		}`;
+
+		const expectedJSON = `//${className}\r\n${JSON.stringify({ PhoneNo: 0, _email: "Sample String", Email: "Sample String" }, null, 4)}`;
+
 		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.PascalCase, SupportFields.includeFields);
 		assert.strictEqual(generatedJSON, expectedJSON);
 	});
-	
+
+	test('PascalCase - Generate Sample JSON from multiple C# Class - include fields - getter and curly braces on new line - readonly property', () => {
+		const parentClassName = 'parentClassName';
+		const nestedClass1Name = 'nestedClass1Name';
+		const csharpClass = `
+		class ${parentClassName}
+		{
+			int id
+			{ get; 
+			set; };
+
+			string Name {get;set;}
+
+			${nestedClass1Name} ${nestedClass1Name} {get;set;}
+		}
+
+		class ${nestedClass1Name}
+		{
+			string City {get;set;};
+
+			string Name {get;set;}
+		}`;
+
+		const nestedClass1Obj = {
+			City: "Sample String",
+			Name: "Sample String"
+		};
+
+		const parentClassObj = {
+			id: 0,
+			Name: "Sample String",
+			[nestedClass1Name]: nestedClass1Obj
+		};
+
+		const nestedClass1JSON = `//${nestedClass1Name}\r\n${JSON.stringify(nestedClass1Obj, null, 4)}`;
+
+		const expectedJSON = `//${parentClassName}\r\n${JSON.stringify(parentClassObj, null, 4)}\r\n\r\n${nestedClass1JSON}`;
+
+		console.log('This is expected:', expectedJSON);
+
+		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.PascalCase, SupportFields.includeFields);
+
+		console.log('This is generated:', generatedJSON);
+		assert.strictEqual(generatedJSON, expectedJSON);
+	});
+
 	//Test cases for camelCase:
-	test('camelCase - Generate JSON from C# Class - Multi property inline declaration', () => {
+	test('camelCase - Generate JSON from C# Class - include fields - Multi property inline declaration', () => {
 		const className = 'Person';
 		const csharpClass = `
 		  class ${className} {
@@ -134,7 +249,7 @@ suite('Extension Test Suite', () => {
 		assert.strictEqual(generatedJSON, expectedJSON);
 	});
 
-	test('camelCase - Generate JSON from C# Class - single property inline declaration', () => {
+	test('camelCase - Generate JSON from C# Class - include fields - single property inline declaration', () => {
 		const className = 'AutoPropertyExample';
 		const csharpClass = `
 			public class ${className}
@@ -168,7 +283,31 @@ suite('Extension Test Suite', () => {
 		assert.strictEqual(generatedJSON, expectedJSON);
 	});
 
-	test('camelCase - Generate Sample JSON from C# Class - readonly property', () => {
+	test('camelCase - Generate Sample JSON from C# Class - include fields - readonly property', () => {
+		const className = 'ReadOnlyPropertyExample';
+		const csharpClass = `
+		public class ${className}
+		{
+			private string _name; // Backing field
+		
+			public string Name
+			{
+				get { return _name; }
+			}
+		
+			public ReadOnlyPropertyExample(string name)
+			{
+				_name = name;
+			}
+		}`;
+
+		const expectedJSON = `//${className}\r\n${JSON.stringify({ _name: "Sample String", name: "Sample String" }, null, 4)}`;
+
+		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.camelCase, SupportFields.includeFields);
+		assert.strictEqual(generatedJSON, expectedJSON);
+	});
+
+	test('camelCase - Generate Sample JSON from C# Class - ignore fields - readonly property', () => {
 		const className = 'ReadOnlyPropertyExample';
 		const csharpClass = `
 		public class ${className}
@@ -187,6 +326,52 @@ suite('Extension Test Suite', () => {
 		}`;
 
 		const expectedJSON = `//${className}\r\n${JSON.stringify({ name: "Sample String" }, null, 4)}`;
+
+		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.camelCase, SupportFields.ignoreFields);
+		assert.strictEqual(generatedJSON, expectedJSON);
+	});
+
+	test('camelCase - Generate Sample JSON from C# Class - ignore fields - getter and curly braces on new line - readonly property', () => {
+		const className = 'ReadOnlyPropertyExample';
+		const csharpClass = `
+		public class ${className}
+		{
+			int PhoneNo;
+
+			string _email;
+		
+			string Email
+			{
+				get{
+					return _email;
+				}
+			}
+		}`;
+
+		const expectedJSON = `//${className}\r\n${JSON.stringify({ email: "Sample String" }, null, 4)}`;
+
+		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.camelCase, SupportFields.ignoreFields);
+		assert.strictEqual(generatedJSON, expectedJSON);
+	});
+
+	test('camelCase - Generate Sample JSON from C# Class - include fields - getter and curly braces on new line - readonly property', () => {
+		const className = 'ReadOnlyPropertyExample';
+		const csharpClass = `
+		public class ${className}
+		{
+			int PhoneNo;
+
+			string _email;
+		
+			string Email
+			{
+				get{
+					return _email;
+				}
+			}
+		}`;
+
+		const expectedJSON = `//${className}\r\n${JSON.stringify({ phoneNo: 0, _email: "Sample String", email: "Sample String" }, null, 4)}`;
 
 		const generatedJSON = generateSampleJSON(csharpClass, NamingConvention.camelCase, SupportFields.includeFields);
 		assert.strictEqual(generatedJSON, expectedJSON);
