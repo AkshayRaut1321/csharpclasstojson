@@ -8,10 +8,16 @@
  It creates the JSON by scanning all properties and their data types.
 
  ### How to use
- 1. Keep a C# class structure in a document tab in VS code.
- 2. Press Ctrl+Shift+P to open Command Palette.
- 3. Search by typing "Create JSON from a C# class".
- 4. Press Enter key and it will produce sample JSON in a new document tab.
+  1. Keep a C# class structure in a document tab in VS code.
+  2. Press Ctrl+Shift+P to open Command Palette.
+  3. Search by typing "Create JSON from a C# class".
+  4. Press Enter key and it will produce sample JSON in a new document tab.
+
+  ### 1.1.0
+  1. Support for generics: Lists and Dictionary
+  
+  ### 1.0.1
+  1. Minor bug fixes
 
   ### 1.0.0
   1. Support for multiple disassociated classes
