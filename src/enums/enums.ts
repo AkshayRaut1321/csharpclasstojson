@@ -3,7 +3,8 @@ export enum NamingConvention {
     PascalCase = "PascalCase"
 }
 
-export enum SupportFields {
-    ignoreFields = "ignoreFields",
-    includeFields = "includeFields"
+export enum SupportedDataMembers {
+    onlyFields = "onlyFields",
+    onlyProperties = "onlyProperties",
+    propertiesAndFields = "propertiesAndFields"
 }

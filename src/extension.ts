@@ -1,7 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { NamingConvention, SupportFields } from './enums/enums';
+import { NamingConvention, SupportedDataMembers } from './enums/enums';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -14,19 +14,27 @@ export function activate(context: vscode.ExtensionContext) {
 	// The command has been defined in the package.json file
 	// The commandId parameter must match the command field in package.json
 	let camelCaseDisposable = vscode.commands.registerCommand('csharpclasstojson.createJsonFromCSharpCamelCase', () => {
-		generateJSONFromClasses(NamingConvention.camelCase, SupportFields.includeFields);
+		generateJSONFromClasses(NamingConvention.camelCase, SupportedDataMembers.propertiesAndFields);
 	});
 
 	let camelCaseIgnoreFieldsDisposable = vscode.commands.registerCommand('csharpclasstojson.createJsonFromCSharpCamelCaseIgnoreFields', () => {
-		generateJSONFromClasses(NamingConvention.camelCase, SupportFields.ignoreFields);
+		generateJSONFromClasses(NamingConvention.camelCase, SupportedDataMembers.onlyProperties);
+	});
+
+	let camelCaseIgnorePropertiesDisposable = vscode.commands.registerCommand('csharpclasstojson.createJsonFromCSharpCamelCaseIgnoreProperties', () => {
+		generateJSONFromClasses(NamingConvention.camelCase, SupportedDataMembers.onlyFields);
 	});
 
 	let pascalCaseDisposable = vscode.commands.registerCommand('csharpclasstojson.createJsonFromCSharpPascalCase', () => {
-		generateJSONFromClasses(NamingConvention.PascalCase, SupportFields.includeFields);
+		generateJSONFromClasses(NamingConvention.PascalCase, SupportedDataMembers.propertiesAndFields);
 	});
 
 	let pascalCaseIgnoreFieldsDisposable = vscode.commands.registerCommand('csharpclasstojson.createJsonFromCSharpPascalCaseIgnoreFields', () => {
-		generateJSONFromClasses(NamingConvention.PascalCase, SupportFields.ignoreFields);
+		generateJSONFromClasses(NamingConvention.PascalCase, SupportedDataMembers.onlyProperties);
+	});
+
+	let pascalCaseIgnorePropertiesDisposable = vscode.commands.registerCommand('csharpclasstojson.createJsonFromCSharpPascalCaseIgnoreProperties', () => {
+		generateJSONFromClasses(NamingConvention.PascalCase, SupportedDataMembers.onlyFields);
 	});
 
 	context.subscriptions.push(pascalCaseDisposable);
@@ -35,7 +43,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(camelCaseIgnoreFieldsDisposable);
 }
 
-export function generateJSONFromClasses(namingConvention: NamingConvention, supportFields: SupportFields) {
+export function generateJSONFromClasses(namingConvention: NamingConvention, supportFields: SupportedDataMembers) {
 
 	// The code you place here will be executed every time your command is executed
 	// Display a message box to the user
@@ -80,7 +88,7 @@ export function generateJSONFromClasses(namingConvention: NamingConvention, supp
 export function deactivate() { }
 
 // Function to generate sample JSON from C# class
-export function generateSampleJSON(csharpClass: string, namingConvention: NamingConvention, supportFields: SupportFields): string {
+export function generateSampleJSON(csharpClass: string, namingConvention: NamingConvention, supportFields: SupportedDataMembers): string {
 	const multiClassRegEx = /class\s+\w+\s*{(?:[^}]*{[^{}]*}|[^{}])*}/g;
 	const classesArray = csharpClass.match(multiClassRegEx) as any[];
 	let finalJson = "";
@@ -109,7 +117,7 @@ export function generateSampleJSON(csharpClass: string, namingConvention: Naming
 }
 
 export function generateSampleJSONFromAClass(matchingClass: [string, string], namingConvention: NamingConvention,
-	allClassNamesAndProperties: Map<string, string>, supportFields: SupportFields): string {
+	allClassNamesAndProperties: Map<string, string>, supportedDataMembers: SupportedDataMembers): string {
 
 	if (!matchingClass[1] || matchingClass[1].length < 3) {
 		throw new Error('Invalid C# class structure');
@@ -118,21 +126,80 @@ export function generateSampleJSONFromAClass(matchingClass: [string, string], na
 	const className = matchingClass[0];
 
 	// Parse class properties
-	const propertyAndFieldsRegex = /(\w+)\s+(\w+)\s*({[^}]*}|;)/g;
-	const propertyRegex = /(\w+)\s+(\w+)\s*{[^}]*}/g;
-	const propertiesMatch = supportFields === SupportFields.ignoreFields ? matchingClass[1].match(propertyRegex) : matchingClass[1].match(propertyAndFieldsRegex);
+	// const propertyAndFieldsRegex = /(\w+)\s+(\w+)\s*({[^}]*}|;)/g;
+	const nonGenericFieldRegex = /\b(\w+)\s+(\w+)\b\s*;/g;
+	const genericFieldRegex = /\b(\w+)\s*(?:<\s*(\w+)(?:\s*,\s*(\w+))?\s*>)\s+(\w+)\s*;/g;
+	const nonGenericPropertyRegex = /(\w+)\s+(\w+)\s*{[^}]*}/g;
+	const genericPropertyRegex = /(\w+)\s*<\s*(\w+)(?:\s*,\s*(\w+))?\s*>\s+(\w+)\s*{[^}]*}/g;
+	// const propertiesMatch = supportedDataMembers === SupportedDataMembers.onlyFields ? matchingClass[1].match(genericFieldDiRegex) : matchingClass[1].match(genericPropertyDiRegex);
 
-	if (!propertiesMatch) {
+	let matchNonGenericFields: RegExpMatchArray | null = null;
+	let matchGenericFields: RegExpMatchArray | null = null;
+	let matchNonGenericProperties: RegExpMatchArray | null = null;
+	let matchGenericProperties: RegExpMatchArray | null = null;
+	let matchedPropertiesAndFields: { value: string, type: string }[] = [];
+
+	switch (supportedDataMembers) {
+		case SupportedDataMembers.onlyFields:
+			matchNonGenericFields = matchingClass[1].match(nonGenericFieldRegex);
+			matchGenericFields = matchingClass[1].match(genericFieldRegex);
+			break;
+		case SupportedDataMembers.onlyProperties:
+			matchNonGenericProperties = matchingClass[1].match(nonGenericPropertyRegex);
+			matchGenericProperties = matchingClass[1].match(genericPropertyRegex);
+			break;
+		case SupportedDataMembers.propertiesAndFields:
+			matchNonGenericFields = matchingClass[1].match(nonGenericFieldRegex);
+			matchGenericFields = matchingClass[1].match(genericFieldRegex);
+			matchNonGenericProperties = matchingClass[1].match(nonGenericPropertyRegex);
+			matchGenericProperties = matchingClass[1].match(genericPropertyRegex);
+			break;
+		default:
+			break;
+	}
+
+	if (matchNonGenericFields || matchGenericFields || matchNonGenericProperties || matchGenericProperties) {
+		if (matchNonGenericFields)
+			matchedPropertiesAndFields = matchNonGenericFields.map((a) => ({ value: a, type: "NonGenericField" }));
+
+		if (matchGenericFields)
+			matchedPropertiesAndFields = matchedPropertiesAndFields.concat(matchGenericFields.map((a) => ({ value: a, type: "GenericField" })));
+
+		if (matchNonGenericProperties)
+			matchedPropertiesAndFields = matchedPropertiesAndFields.concat(matchNonGenericProperties.map((a) => ({ value: a, type: "NonGenericProperty" })));
+
+		if (matchGenericProperties)
+			matchedPropertiesAndFields = matchedPropertiesAndFields.concat(matchGenericProperties.map((a) => ({ value: a, type: "GenericProperty" })));
+	}
+
+	if (!matchedPropertiesAndFields) {
 		console.error(`No properties found in C# class - ${className}`);
 		return JSON.stringify({});
 	}
 
 	const outputObject: { [key: string]: any } = {};
-	propertiesMatch.forEach(propertyMatch => {
-		const [, type, name] = propertyMatch.match(/\s*(\w+)\s+(\w+)/) || [];
-		if (type && name) {
-			const propName = namingConvention === NamingConvention.PascalCase ? name : (name[0].toLowerCase() + name.substring(1));
-			outputObject[propName] = generateSampleValue(type, namingConvention, allClassNamesAndProperties, supportFields);
+	matchedPropertiesAndFields.forEach((propertyMatch) => {
+		let type = '', genericSubType = '', finalName;
+		switch (propertyMatch.type) {
+			case "NonGenericField":
+				[, type, finalName] = propertyMatch.value.match(/\s*(\w+)\s+(\w+)/) || [];
+				break;
+			case "GenericField":
+				[, type, genericSubType, finalName] = propertyMatch.value.match(/\b(\w+)\s*(?:(<[^>]+>)?)\s+(\w+)\s*;/) || [];
+				break;
+			case "NonGenericProperty":
+				[, type, finalName] = propertyMatch.value.match(/\s*(\w+)\s+(\w+)/) || [];
+				break;
+			case "GenericProperty":
+				[, type, genericSubType, finalName] = propertyMatch.value.match(/\b(\w+)(<[^>]+>)\s+(\w+)\s*{[^}]*\s*;/) || [];
+				break;
+			default:
+				break;
+		}
+
+		if (type && type !== "return" && genericSubType != null && genericSubType != undefined && finalName) {
+			const propName = namingConvention === NamingConvention.PascalCase ? finalName : (finalName[0].toLowerCase() + finalName.substring(1));
+			outputObject[propName] = generateSampleValue(type, genericSubType, namingConvention, allClassNamesAndProperties, supportedDataMembers);
 		}
 	});
 
@@ -143,9 +210,9 @@ export function generateSampleJSONFromAClass(matchingClass: [string, string], na
 }
 
 // Function to generate sample value based on C# type
-export function generateSampleValue(dataType: string, namingConvention: NamingConvention,
-	allClassNamesAndProperties: Map<string, string>, supportFields: SupportFields): any {
-	switch (dataType) {
+export function generateSampleValue(type: string, genericSubType: string, namingConvention: NamingConvention,
+	allClassNamesAndProperties: Map<string, string>, supportedDataMembers: SupportedDataMembers): any {
+	switch (type) {
 		case "bool":
 			return false;
 		case "byte":
@@ -201,14 +268,36 @@ export function generateSampleValue(dataType: string, namingConvention: NamingCo
 		case "Nullable":
 			return null;
 		default: {
-			if (allClassNamesAndProperties.has(dataType)) {
-				const matchingClassStructure = allClassNamesAndProperties.get(dataType) || '';
-
-				const nestedOutput = generateSampleJSONFromAClass([dataType, matchingClassStructure], namingConvention, allClassNamesAndProperties, supportFields);
-				return JSON.parse(nestedOutput);
+			if (type === "List") {
+				const result = getComplexTypeSampleData(genericSubType.replace("<", "").replace(">", ""), namingConvention, allClassNamesAndProperties, supportedDataMembers);
+				return [result];
+			}
+			else if (type === "Dictionary") {
+				const finalGenericSubType = genericSubType.replace("<", "").replace(">", "").split(",");
+				const keyType = finalGenericSubType[0].trim();
+				const valueType = finalGenericSubType[1].trim();
+				const keyResult = getComplexTypeSampleData(keyType, namingConvention, allClassNamesAndProperties, supportedDataMembers);
+				const valueResult = getComplexTypeSampleData(valueType, namingConvention, allClassNamesAndProperties, supportedDataMembers);
+				return { [keyResult]: valueResult };
+			}
+			else if (allClassNamesAndProperties.has(type)) {
+				return getComplexTypeSampleData(type, namingConvention, allClassNamesAndProperties, supportedDataMembers);
 			}
 			return null; // Default for unsupported types
 		}
+	}
+}
+
+function getComplexTypeSampleData(type: string, namingConvention: NamingConvention, allClassNamesAndProperties: Map<string, string>,
+	supportedDataMembers: SupportedDataMembers) {
+	if (allClassNamesAndProperties.has(type)) {
+		const matchingClassStructure = allClassNamesAndProperties.get(type) || '';
+
+		const nestedOutput = generateSampleJSONFromAClass([type, matchingClassStructure], namingConvention, allClassNamesAndProperties, supportedDataMembers);
+		return JSON.parse(nestedOutput);
+	}
+	else {
+		return generateSampleValue(type, '', namingConvention, allClassNamesAndProperties, supportedDataMembers);
 	}
 }
 

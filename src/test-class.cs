@@ -9,6 +9,16 @@ class Employee
     Address address {get;set;}
 
     Contact Contact;
+
+    List<Contact> Contacts {get; set;}
+
+    List<string> NamesProp {get;set;}
+
+    List<string> NamesField;
+
+    Dictionary<string, int> CountsField;
+
+    Dictionary<string, int> CountsProp {get; set;};
 }
 
 class Address

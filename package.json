@@ -22,12 +22,20 @@
         "title": "Create JSON from a C# class and ignore fields (camelCase)"
       },
       {
+        "command": "csharpclasstojson.createJsonFromCSharpCamelCaseIgnoreProperties",
+        "title": "Create JSON from a C# class and ignore properties (camelCase)"
+      },
+      {
         "command": "csharpclasstojson.createJsonFromCSharpPascalCase",
         "title": "Create JSON from a C# class (PascalCase)"
       },
       {
         "command": "csharpclasstojson.createJsonFromCSharpPascalCaseIgnoreFields",
-        "title": "Create JSON from a C# class and ignore fields (PascalCase)"
+        "title": "Create JSON from a C# class and ignore properties (PascalCase)"
+      },
+      {
+        "command": "csharpclasstojson.createJsonFromCSharpPascalCaseIgnoreProperties",
+        "title": "Create JSON from a C# class and ignore properties (PascalCase)"
       }
     ]
   },
