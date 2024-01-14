@@ -13,7 +13,7 @@
   3. Search by typing "Create JSON from a C# class".
   4. Press Enter key and it will produce sample JSON in a new document tab.
 
-  ### 1.1.0
+  ### 1.1.1
   1. Support for generics: Lists and Dictionary
   
   ### 1.0.1
